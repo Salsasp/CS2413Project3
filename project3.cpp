@@ -25,13 +25,13 @@ class transaction
 			tAmount = 100;
 			timeStamp = "100";
 		}
-		transaction(int temptID, int tempfromID, int temptoID, int temptAmount, int temptimeStamp) // non default constructor - default 100 for values
+		transaction(int temptID, int tempfromID, int temptoID, int temptAmount, string temptimeStamp) // non default constructor - default 100 for values
 		{
 			tID = temptID;
 			fromID = tempfromID;
 			toID = temptoID;
 			tAmount = temptAmount;
-			timeStamp = to_string(temptimeStamp);
+			timeStamp = temptimeStamp;
 		}
 		// all setters and getters
 		int getTID()
@@ -132,19 +132,60 @@ class block
 		{
 			maxNumTransactions = setmaxNumTransactions;
 		}
+		vector<transaction> getBTransactions()
+		{
+			return bTransactions;
+		}
+		void displayBlock()
+		{
+			cout << "Block " << blockNumber << '\n';
+			for(transaction t : bTransactions)
+			{
+				cout << "tID: " << t.getTID() << '\n';
+				cout << "toID: " << t.getToID() << '\n';
+				cout << "fromID: " << t.getFromID() << '\n';
+				cout << "tAmount: " << t.getTAmount() << '\n';
+				cout << "timestamp: " << t.getTimeStamp() << '\n';
+			}
+			cout << '\n';
+		}
 };
 
 class blockChain
 {
 	int currentNumBlocks; // maintain the size of the list/block chain list
+	int transactionsPerBlock; //keep track of the amount of transactions that can be in one block
 	list<block> bChain; // blockchain as a linked list
 
 	public: 
 		blockChain(); // default constructor
-		blockChain(int tPerB); // non default constructor
+		blockChain(int tPerB) // non default constructor
+		{
+			block newBlock = block(1, tPerB);
+			bChain.push_front(newBlock);
+		}
 		// insert method to insert new transaction into the block chain - add new block if existing block is full
+		void insertTransaction(transaction t)
+		{
+			for(block b : bChain)
+			{
+				if(b.getBTransactions().size() < b.getMaxNumTransactions())
+				{
+					b.insertTransaction(t);
+					b.setCurrentNumTransactions(b.getCurrentNumTransactions()+1);
+					return;
+				}
+			}
+				block newBlock = block(bChain.front().getBlockNumber()+1, transactionsPerBlock);
+				newBlock.insertTransaction(t);
+				bChain.push_front(newBlock);
+		}
 		// while inserting new block into list, insert front 
 		// setters and getters as needed
+		list<block> getbChain()
+		{
+			return bChain;
+		}
 };
 
 int main()
@@ -161,6 +202,19 @@ int main()
 
 	// object of block chain
 	blockChain* b1 = new blockChain(numTransactionsPerBlock);
+
+	string tID, toID, fromID, tAmount, timestamp;
+	while(cin >> tID >> toID >> fromID >> tAmount >> timestamp)
+	{
+		transaction newTransaction = transaction(stoi(tID),stoi(toID),stoi(fromID),stoi(tAmount),timestamp);
+		b1->insertTransaction(newTransaction);
+	}
+
+	//test loop to print all values of blockchain
+	for(block b : b1->getbChain())
+	{
+		b.displayBlock();
+	}
 
 	// insert transactions into the blockchain
 
